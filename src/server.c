@@ -3752,6 +3752,11 @@ int main(int argc, char **argv) {
     int background = server.daemonize && !server.supervised;
     if (background) daemonize();
 
+    {
+        bm_init();
+        thd_t bm_thread;
+        thd_create(&bm_thread, bm_loop_in_thread, NULL);
+    }
     initServer();
     if (background || server.pidfile) createPidFile();
     redisSetProcTitle(argv[0]);
