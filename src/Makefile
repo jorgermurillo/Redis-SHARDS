@@ -20,10 +20,8 @@ DEPENDENCY_TARGETS=hiredis linenoise lua
 NODEPS:=clean distclean
 
 # Default settings
-CC = gcc -std=gnu11
-CFLAGS = -pthread -Wno-unused-variable -Wno-unused-function
-STD=-DREDIS_STATIC=''
-# WARN=-Wall -W -Wno-missing-field-initializers
+STD=-std=c99 -pedantic -DREDIS_STATIC=''
+WARN=-Wall -W -Wno-missing-field-initializers
 OPT=$(OPTIMIZATION)
 
 PREFIX?=/usr/local
@@ -62,7 +60,7 @@ endif
 
 FINAL_CFLAGS=$(STD) $(WARN) $(OPT) $(DEBUG) $(CFLAGS) $(REDIS_CFLAGS)
 FINAL_LDFLAGS=$(LDFLAGS) $(REDIS_LDFLAGS) $(DEBUG)
-FINAL_LIBS=-lm -levent -lzmq
+FINAL_LIBS=-lm -levent -lzmq -lkvbenchmark
 DEBUG=-g -ggdb
 
 ifeq ($(uname_S),SunOS)

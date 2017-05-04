@@ -29,7 +29,7 @@
 
 #include "server.h"
 #include <math.h> /* isnan(), isinf() */
-#include "k_v_benchmark.c"
+#include "k_v_benchmark.h"
 
 /*-----------------------------------------------------------------------------
  * String Commands
@@ -138,7 +138,7 @@ void setCommand(client *c) {
 
     c->argv[2] = tryObjectEncoding(c->argv[2]);
     {
-        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]);
+        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
         bm_op_t op = {BM_WRITE_OP, key_hv};
         bm_record_op(op);
     }
@@ -177,7 +177,7 @@ int getGenericCommand(client *c) {
 
 void getCommand(client *c) {
     {
-        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]);
+        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
         bm_op_t op = {BM_READ_OP, key_hv};
         bm_record_op(op);
     }

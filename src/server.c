@@ -54,6 +54,7 @@
 #include <sys/utsname.h>
 #include <locale.h>
 #include <sys/socket.h>
+#include "k_v_benchmark.h"
 
 /* Our shared "common" objects */
 
@@ -3754,8 +3755,8 @@ int main(int argc, char **argv) {
 
     {
         bm_init();
-        thd_t bm_thread;
-        thd_create(&bm_thread, bm_loop_in_thread, NULL);
+        pthread_t bm_thread;
+        pthread_create(&bm_thread, NULL, bm_loop_in_thread, NULL);
     }
     initServer();
     if (background || server.pidfile) createPidFile();
