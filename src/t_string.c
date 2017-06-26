@@ -68,6 +68,12 @@ static int checkStringLength(client *c, long long size) {
 void setGenericCommand(client *c, int flags, robj *key, robj *val, robj *expire, int unit, robj *ok_reply, robj *abort_reply) {
     long long milliseconds = 0; /* initialized to avoid any harmness warning */
 
+    {
+        uint64_t key_hv = dictHashKey(c->db->dict, key->ptr);
+        bm_op_t op = {BM_WRITE_OP, key_hv};
+        bm_record_op(op);
+    }
+
     if (expire) {
         if (getLongLongFromObjectOrReply(c, expire, &milliseconds, NULL) != C_OK)
             return;
@@ -137,11 +143,11 @@ void setCommand(client *c) {
     }
 
     c->argv[2] = tryObjectEncoding(c->argv[2]);
-    {
-        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
-        bm_op_t op = {BM_WRITE_OP, key_hv};
-        bm_record_op(op);
-    }
+    // {
+    //     uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+    //     bm_op_t op = {BM_WRITE_OP, key_hv};
+    //     bm_record_op(op);
+    // }
     setGenericCommand(c,flags,c->argv[1],c->argv[2],expire,unit,NULL,NULL);
 }
 
@@ -163,6 +169,12 @@ void psetexCommand(client *c) {
 int getGenericCommand(client *c) {
     robj *o;
 
+    {
+        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+        bm_op_t op = {BM_READ_OP, key_hv};
+        bm_record_op(op);
+    }
+
     if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.nullbulk)) == NULL)
         return C_OK;
 
@@ -176,11 +188,11 @@ int getGenericCommand(client *c) {
 }
 
 void getCommand(client *c) {
-    {
-        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
-        bm_op_t op = {BM_READ_OP, key_hv};
-        bm_record_op(op);
-    }
+    // {
+    //     uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+    //     bm_op_t op = {BM_READ_OP, key_hv};
+    //     bm_record_op(op);
+    // }
     getGenericCommand(c);
 }
 

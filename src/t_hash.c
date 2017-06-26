@@ -29,6 +29,7 @@
 
 #include "server.h"
 #include <math.h>
+#include "k_v_benchmark.h"
 
 /*-----------------------------------------------------------------------------
  * Hash type API
@@ -549,6 +550,12 @@ void hmsetCommand(client *c) {
         return;
     }
 
+    {
+        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+        bm_op_t op = {BM_WRITE_OP, key_hv};
+        bm_record_op(op);
+    }
+
     if ((o = hashTypeLookupWriteOrCreate(c,c->argv[1])) == NULL) return;
     hashTypeTryConversion(o,c->argv,2,c->argc-1);
     for (i = 2; i < c->argc; i += 2) {
@@ -678,7 +685,7 @@ static void addHashFieldToReply(client *c, robj *o, sds field) {
 
 void hgetCommand(client *c) {
     robj *o;
-
+    
     if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.nullbulk)) == NULL ||
         checkType(c,o,OBJ_HASH)) return;
 
@@ -688,7 +695,7 @@ void hgetCommand(client *c) {
 void hmgetCommand(client *c) {
     robj *o;
     int i;
-
+    
     /* Don't abort when the key cannot be found. Non-existing keys are empty
      * hashes, where HMGET should respond with a series of null bulks. */
     o = lookupKeyRead(c->db, c->argv[1]);
@@ -772,9 +779,15 @@ void genericHgetallCommand(client *c, int flags) {
     hashTypeIterator *hi;
     int multiplier = 0;
     int length, count = 0;
-
+    
     if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.emptymultibulk)) == NULL
         || checkType(c,o,OBJ_HASH)) return;
+
+    {
+        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+        bm_op_t op = {BM_READ_OP, key_hv};
+        bm_record_op(op);
+    }
 
     if (flags & OBJ_HASH_KEY) multiplier++;
     if (flags & OBJ_HASH_VALUE) multiplier++;
