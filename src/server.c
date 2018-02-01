@@ -57,7 +57,7 @@
 #include "k_v_benchmark.h"
 
 /* Our shared "common" objects */
-
+ 
 struct sharedObjectsStruct shared;
 
 /* Global vars that are actually used as constants. The following double
@@ -3732,7 +3732,7 @@ int main(int argc, char **argv) {
         resetServerSaveParams();
         loadServerConfig(configfile,options);
         sdsfree(options);
-    }
+    } 
 
     serverLog(LL_WARNING, "oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo");
     serverLog(LL_WARNING,

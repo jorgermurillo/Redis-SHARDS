@@ -59,8 +59,8 @@ endif
 -include .make-settings
 
 FINAL_CFLAGS=$(STD) $(WARN) $(OPT) $(DEBUG) $(CFLAGS) $(REDIS_CFLAGS)
-FINAL_LDFLAGS=$(LDFLAGS) $(REDIS_LDFLAGS) $(DEBUG)
-FINAL_LIBS=-lm -levent -lzmq -lkvbenchmark
+FINAL_LDFLAGS=$(LDFLAGS) $(REDIS_LDFLAGS) $(DEBUG) -I.
+FINAL_LIBS=-lm -levent -lzmq -lk_v_benchmark -llfds711 -lSHARDS -L. `pkg-config --cflags --libs glib-2.0`
 DEBUG=-g -ggdb
 
 ifeq ($(uname_S),SunOS)
@@ -102,7 +102,7 @@ endif
 endif
 endif
 # Include paths to dependencies
-FINAL_CFLAGS+= -I../deps/hiredis -I../deps/linenoise -I../deps/lua/src
+FINAL_CFLAGS+= -I../deps/hiredis -I../deps/linenoise -I../deps/lua/src 
 
 ifeq ($(MALLOC),tcmalloc)
 	FINAL_CFLAGS+= -DUSE_TCMALLOC
@@ -192,7 +192,7 @@ endif
 
 # redis-server
 $(REDIS_SERVER_NAME): $(REDIS_SERVER_OBJ)
-	$(REDIS_LD) -o $@ $^ ../deps/hiredis/libhiredis.a ../deps/lua/src/liblua.a $(FINAL_LIBS)
+	$(REDIS_LD)  -o $@ $^ ../deps/hiredis/libhiredis.a ../deps/lua/src/liblua.a $(FINAL_LIBS)
 
 # redis-sentinel
 $(REDIS_SENTINEL_NAME): $(REDIS_SERVER_NAME)
