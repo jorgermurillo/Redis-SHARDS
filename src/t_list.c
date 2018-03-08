@@ -28,7 +28,7 @@
  */
 
 #include "server.h"
-
+#include "k_v_benchmark.h"
 /*-----------------------------------------------------------------------------
  * List API
  *----------------------------------------------------------------------------*/
@@ -202,6 +202,9 @@ void pushGenericCommand(client *c, int where) {
         addReply(c,shared.wrongtypeerr);
         return;
     }
+    //void listTypePush(robj *subject, robj *value, int where) 
+    //void listTypePush(lobj,c->argv[j],where) 
+    
 
     for (j = 2; j < c->argc; j++) {
         if (!lobj) {
@@ -221,6 +224,12 @@ void pushGenericCommand(client *c, int where) {
         notifyKeyspaceEvent(NOTIFY_LIST,event,c->argv[1],c->db->id);
     }
     server.dirty += pushed;
+
+    {
+        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+        bm_op_t op = {BM_WRITE_OP, key_hv, server.port};
+        bm_record_op(op);
+    }
 }
 
 void lpushCommand(client *c) {
@@ -316,7 +325,7 @@ void lindexCommand(client *c) {
     if (o == NULL || checkType(c,o,OBJ_LIST)) return;
     long index;
     robj *value = NULL;
-
+    //fprintf(stderr, "robj o value: %s \n ", (char*)o->ptr);
     if ((getLongFromObjectOrReply(c, c->argv[2], &index, NULL) != C_OK))
         return;
 
@@ -330,8 +339,17 @@ void lindexCommand(client *c) {
             }
             addReplyBulk(c,value);
             decrRefCount(value);
+            //Valid GET
+            
+            {
+                uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+                bm_op_t op = {BM_READ_OP, key_hv, server.port};
+                bm_record_op(op);
+            }
+            
         } else {
             addReply(c,shared.nullbulk);
+                      
         }
     } else {
         serverPanic("Unknown list encoding");
@@ -358,6 +376,13 @@ void lsetCommand(client *c) {
             signalModifiedKey(c->db,c->argv[1]);
             notifyKeyspaceEvent(NOTIFY_LIST,"lset",c->argv[1],c->db->id);
             server.dirty++;
+
+            {
+                uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+                bm_op_t op = {BM_WRITE_OP, key_hv, server.port};
+                bm_record_op(op);
+            }
+
         }
     } else {
         serverPanic("Unknown list encoding");
@@ -377,6 +402,16 @@ void popGenericCommand(client *c, int where) {
         addReplyBulk(c,value);
         decrRefCount(value);
         notifyKeyspaceEvent(NOTIFY_LIST,event,c->argv[1],c->db->id);
+        // Valid GET
+        
+        {
+            uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+            bm_op_t op = {BM_READ_OP, key_hv, server.port};
+            bm_record_op(op);
+        }
+        
+        // This if checks if the list is empty, in order to delete it
+        // SHOULD SHARDS DO ANYTHING IF THE LIST (AND ITS CORRESPONDING KEY) ARE ERASED???
         if (listTypeLength(o) == 0) {
             notifyKeyspaceEvent(NOTIFY_GENERIC,"del",
                                 c->argv[1],c->db->id);
@@ -384,6 +419,8 @@ void popGenericCommand(client *c, int where) {
         }
         signalModifiedKey(c->db,c->argv[1]);
         server.dirty++;
+       
+
     }
 }
 
@@ -422,6 +459,14 @@ void lrangeCommand(client *c) {
 
     /* Return the result in form of a multi-bulk reply */
     addReplyMultiBulkLen(c,rangelen);
+    //Valid GET
+    
+    {
+            uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+            bm_op_t op = {BM_READ_OP, key_hv, server.port};
+            bm_record_op(op);
+    }
+    
     if (o->encoding == OBJ_ENCODING_QUICKLIST) {
         listTypeIterator *iter = listTypeInitIterator(o, start, LIST_TAIL);
 

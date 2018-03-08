@@ -2151,6 +2151,9 @@ void call(client *c, int flags) {
     dirty = server.dirty;
     start = ustime();
     c->cmd->proc(c);
+
+    // ADD THEBM_RECORD_OP() FUNCTION HERE??????
+
     duration = ustime()-start;
     dirty = server.dirty-dirty;
     if (dirty < 0) dirty = 0;

@@ -68,11 +68,7 @@ static int checkStringLength(client *c, long long size) {
 void setGenericCommand(client *c, int flags, robj *key, robj *val, robj *expire, int unit, robj *ok_reply, robj *abort_reply) {
     long long milliseconds = 0; /* initialized to avoid any harmness warning */
 
-    {
-        uint64_t key_hv = dictHashKey(c->db->dict, key->ptr);
-        bm_op_t op = {BM_WRITE_OP, key_hv};
-        bm_record_op(op);
-    }
+    
 
     if (expire) {
         if (getLongLongFromObjectOrReply(c, expire, &milliseconds, NULL) != C_OK)
@@ -90,6 +86,13 @@ void setGenericCommand(client *c, int flags, robj *key, robj *val, robj *expire,
         addReply(c, abort_reply ? abort_reply : shared.nullbulk);
         return;
     }
+
+    {
+        uint64_t key_hv = dictHashKey(c->db->dict, key->ptr);
+        bm_op_t op = {BM_WRITE_OP, key_hv ,server.port};
+        bm_record_op(op);
+    }
+
     setKey(c->db,key,val);
     server.dirty++;
     if (expire) setExpire(c,c->db,key,mstime()+milliseconds);
@@ -169,30 +172,33 @@ void psetexCommand(client *c) {
 int getGenericCommand(client *c) {
     robj *o;
 
-    {
-        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
-        bm_op_t op = {BM_READ_OP, key_hv};
-        bm_record_op(op);
-    }
+    // Gustavo's code should go here if every GET operation should trigger a SHARDS_feed_obj
 
-    if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.nullbulk)) == NULL)
+    if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.nullbulk)) == NULL){
+
+        // Checks if the key exists
         return C_OK;
-
+    }
     if (o->type != OBJ_STRING) {
         addReply(c,shared.wrongtypeerr);
         return C_ERR;
     } else {
         addReplyBulk(c,o);
+        // Gustavo's code should go here if the only GET operations that should trigger SHARDS_feed_obj are the ones acting on existing keys
+        // This works
+        
+        {
+            uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+            bm_op_t op = {BM_READ_OP, key_hv,server.port};
+            bm_record_op(op);
+        }
+        
         return C_OK;
     }
 }
 
 void getCommand(client *c) {
-    // {
-    //     uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
-    //     bm_op_t op = {BM_READ_OP, key_hv};
-    //     bm_record_op(op);
-    // }
+    
     getGenericCommand(c);
 }
 

@@ -16,6 +16,7 @@ typedef enum {
 	BM_TO_QUEUE,			//3
 	BM_TO_LOCK_FREE_QUEUE,	//4
 	BM_TO_ZEROMQ,			//5
+	BM_TO_ZEROMQ_X,			//6
 } bm_type_t;
 
 typedef enum {
@@ -33,6 +34,7 @@ typedef enum {
 typedef struct {
     bm_op_type_t type;
     uint64_t	 key_hv;
+	int port;
 } bm_op_t;
 
 void bm_init();

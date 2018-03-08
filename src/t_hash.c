@@ -523,6 +523,14 @@ void hsetCommand(client *c) {
     signalModifiedKey(c->db,c->argv[1]);
     notifyKeyspaceEvent(NOTIFY_HASH,"hset",c->argv[1],c->db->id);
     server.dirty++;
+
+    {
+        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+        bm_op_t op = {BM_WRITE_OP, key_hv};
+        bm_record_op(op);
+    }
+
+
 }
 
 void hsetnxCommand(client *c) {
@@ -556,7 +564,12 @@ void hmsetCommand(client *c) {
         bm_record_op(op);
     }
 
-    if ((o = hashTypeLookupWriteOrCreate(c,c->argv[1])) == NULL) return;
+    if ((o = hashTypeLookupWriteOrCreate(c,c->argv[1])) == NULL){ 
+        //fprintf(stderr, "No HASH exists!\n");    
+        
+        return;
+    }
+
     hashTypeTryConversion(o,c->argv,2,c->argc-1);
     for (i = 2; i < c->argc; i += 2) {
         hashTypeSet(o,c->argv[i]->ptr,c->argv[i+1]->ptr,HASH_SET_COPY);
@@ -690,6 +703,14 @@ void hgetCommand(client *c) {
         checkType(c,o,OBJ_HASH)) return;
 
     addHashFieldToReply(c, o, c->argv[2]->ptr);
+    //Valid GET
+    
+    {
+        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+        bm_op_t op = {BM_READ_OP, key_hv};
+        bm_record_op(op);
+    }
+    
 }
 
 void hmgetCommand(client *c) {
@@ -708,6 +729,14 @@ void hmgetCommand(client *c) {
     for (i = 2; i < c->argc; i++) {
         addHashFieldToReply(c, o, c->argv[i]->ptr);
     }
+    //Valid GET
+    
+    {
+        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+        bm_op_t op = {BM_READ_OP, key_hv};
+        bm_record_op(op);
+    }
+    
 }
 
 void hdelCommand(client *c) {
@@ -783,11 +812,7 @@ void genericHgetallCommand(client *c, int flags) {
     if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.emptymultibulk)) == NULL
         || checkType(c,o,OBJ_HASH)) return;
 
-    {
-        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
-        bm_op_t op = {BM_READ_OP, key_hv};
-        bm_record_op(op);
-    }
+    
 
     if (flags & OBJ_HASH_KEY) multiplier++;
     if (flags & OBJ_HASH_VALUE) multiplier++;

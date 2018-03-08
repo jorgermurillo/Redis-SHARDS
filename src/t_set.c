@@ -28,6 +28,7 @@
  */
 
 #include "server.h"
+#include "k_v_benchmark.h"
 
 /*-----------------------------------------------------------------------------
  * Set Commands
@@ -283,6 +284,13 @@ void saddCommand(client *c) {
         signalModifiedKey(c->db,c->argv[1]);
         notifyKeyspaceEvent(NOTIFY_SET,"sadd",c->argv[1],c->db->id);
     }
+/*
+    {
+        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+        bm_op_t op = {BM_WRITE_OP, key_hv,server.port};
+        bm_record_op(op);
+    }
+*/
     server.dirty += added;
     addReplyLongLong(c,added);
 }
