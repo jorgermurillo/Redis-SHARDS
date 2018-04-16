@@ -526,7 +526,7 @@ void hsetCommand(client *c) {
 
     {
         uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
-        bm_op_t op = {BM_WRITE_OP, key_hv};
+        bm_op_t op = {BM_WRITE_OP, key_hv,server.port};
         bm_record_op(op);
     }
 
@@ -558,16 +558,18 @@ void hmsetCommand(client *c) {
         return;
     }
 
-    {
-        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
-        bm_op_t op = {BM_WRITE_OP, key_hv};
-        bm_record_op(op);
-    }
+    
 
     if ((o = hashTypeLookupWriteOrCreate(c,c->argv[1])) == NULL){ 
         //fprintf(stderr, "No HASH exists!\n");    
         
         return;
+    }
+
+    {
+        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+        bm_op_t op = {BM_WRITE_OP, key_hv,server.port};
+        bm_record_op(op);
     }
 
     hashTypeTryConversion(o,c->argv,2,c->argc-1);
@@ -707,7 +709,7 @@ void hgetCommand(client *c) {
     
     {
         uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
-        bm_op_t op = {BM_READ_OP, key_hv};
+        bm_op_t op = {BM_READ_OP, key_hv,server.port};
         bm_record_op(op);
     }
     
@@ -733,7 +735,7 @@ void hmgetCommand(client *c) {
     
     {
         uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
-        bm_op_t op = {BM_READ_OP, key_hv};
+        bm_op_t op = {BM_READ_OP, key_hv,server.port};
         bm_record_op(op);
     }
     

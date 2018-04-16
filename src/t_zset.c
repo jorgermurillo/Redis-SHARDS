@@ -58,6 +58,8 @@
 
 #include "server.h"
 #include <math.h>
+#include "k_v_benchmark.h"
+
 
 /*-----------------------------------------------------------------------------
  * Skiplist implementation of the low level API
@@ -1587,13 +1589,20 @@ void zaddGenericCommand(client *c, int flags) {
     server.dirty += (added+updated);
 
 reply_to_client:
+
+    {
+                uint64_t key_hv = dictHashKey(c->db->dict, key->ptr);
+                bm_op_t op = {BM_WRITE_OP, key_hv ,server.port};
+                bm_record_op(op);
+    }
     if (incr) { /* ZINCRBY or INCR option. */
-        if (processed)
+        if (processed){
             addReplyDouble(c,score);
-        else
+        }else
             addReply(c,shared.nullbulk);
     } else { /* ZADD. */
-        addReplyLongLong(c,ch ? added+updated : added);
+
+            addReplyLongLong(c,ch ? added+updated : added);
     }
 
 cleanup:
@@ -1637,6 +1646,7 @@ void zremCommand(client *c) {
         signalModifiedKey(c->db,key);
         server.dirty += deleted;
     }
+    
     addReplyLongLong(c,deleted);
 }
 
@@ -2411,7 +2421,11 @@ void zrangeGenericCommand(client *c, int reverse) {
 
         serverAssertWithInfo(c,zobj,eptr != NULL);
         sptr = ziplistNext(zl,eptr);
-
+        {
+                uint64_t key_hv = dictHashKey(c->db->dict, key->ptr);
+                bm_op_t op = {BM_READ_OP, key_hv ,server.port};
+                bm_record_op(op);
+        }
         while (rangelen--) {
             serverAssertWithInfo(c,zobj,eptr != NULL && sptr != NULL);
             serverAssertWithInfo(c,zobj,ziplistGet(eptr,&vstr,&vlen,&vlong));
@@ -2445,7 +2459,11 @@ void zrangeGenericCommand(client *c, int reverse) {
             if (start > 0)
                 ln = zslGetElementByRank(zsl,start+1);
         }
-
+        {
+                uint64_t key_hv = dictHashKey(c->db->dict, key->ptr);
+                bm_op_t op = {BM_READ_OP, key_hv ,server.port};
+                bm_record_op(op);
+        }
         while(rangelen--) {
             serverAssertWithInfo(c,zobj,ln != NULL);
             ele = ln->ele;

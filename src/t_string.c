@@ -324,6 +324,11 @@ void mgetCommand(client *c) {
                 addReply(c,shared.nullbulk);
             } else {
                 addReplyBulk(c,o);
+                {
+                    uint64_t key_hv = dictHashKey(c->db->dict, c->argv[j]->ptr);
+                    bm_op_t op = {BM_READ_OP, key_hv,server.port};
+                    bm_record_op(op);
+                }
             }
         }
     }
@@ -354,6 +359,11 @@ void msetGenericCommand(client *c, int nx) {
         c->argv[j+1] = tryObjectEncoding(c->argv[j+1]);
         setKey(c->db,c->argv[j],c->argv[j+1]);
         notifyKeyspaceEvent(NOTIFY_STRING,"set",c->argv[j],c->db->id);
+        {
+            uint64_t key_hv = dictHashKey(c->db->dict, c->argv[j]->ptr);
+            bm_op_t op = {BM_WRITE_OP, key_hv ,server.port};
+            bm_record_op(op);
+        }
     }
     server.dirty += (c->argc-1)/2;
     addReply(c, nx ? shared.cone : shared.ok);
