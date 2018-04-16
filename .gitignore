@@ -28,3 +28,7 @@ deps/lua/src/liblua.a
 .prerequisites
 *.dSYM
 Makefile.dep
+src/k_v_benchmark/ZeroMQ_SHARDS
+src/k_v_benchmark/redis-proxy
+src/k_v_benchmark/ZeroMQ_Results/*
+
