@@ -184,6 +184,7 @@ void bm_init() {
 		    zmq_sender = zmq_socket (zmq_context, ZMQ_PUB);
 		    int rc = zmq_bind(zmq_sender, "tcp://127.0.0.1:5555");
 		    fprintf (stderr, "Started zmq server...\n");
+            return;
     	} break;
         case BM_TO_ZEROMQ_X: {
     		zmq_context = zmq_ctx_new ();
@@ -196,7 +197,7 @@ void bm_init() {
             }
             assert(rc==0);
 		    fprintf (stderr, "Started zmq server as Extended PUB-SUB...\n");
-            
+            return;
     	} break;
     }
 
