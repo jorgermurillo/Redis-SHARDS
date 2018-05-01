@@ -125,7 +125,7 @@ int main(int argc, char** argv){
     int epoch_limit = strtol(argv[1],NULL,10);//1000000;
     int current_epoch = 0; 
     
-    double R = strtol(argv[2],NULL,10);
+    double R = strtod(argv[2],NULL);
     unsigned int shards_set_size = 16000;
     unsigned int bucket_size = 10;
 
