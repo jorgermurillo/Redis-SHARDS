@@ -192,7 +192,7 @@ void bm_init() {
 		    int rc = zmq_connect(zmq_sender, "tcp://127.0.0.1:5555");
             int err = zmq_errno();
             
-            if(rc==0){
+            if(rc!=0){
                 fprintf(stderr, "Error: %s .\n", zmq_strerror(err));
             }
             assert(rc==0);

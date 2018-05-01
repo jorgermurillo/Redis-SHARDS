@@ -120,13 +120,14 @@ int main(int argc, char** argv){
 
     // SHARDS stuff
     GHashTable *shards_table = g_hash_table_new_full(g_int_hash, g_int_equal, NULL, ( GDestroyNotify )SHARDS_free);
-    double R = 1;
-    unsigned int shards_set_size = 16000;
-    unsigned int bucket_size = 10;
+
 
     int epoch_limit = strtol(argv[1],NULL,10);//1000000;
     int current_epoch = 0; 
     
+    double R = strtol(argv[2],NULL,10);
+    unsigned int shards_set_size = 16000;
+    unsigned int bucket_size = 10;
 
 
     bm_op_t op = {BM_READ_OP, 0, 0}; //dummy obj to receive the tace from Redis
