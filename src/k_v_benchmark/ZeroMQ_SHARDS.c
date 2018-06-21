@@ -169,7 +169,7 @@ int main(int argc, char** argv){
 
 
         cnt++;
-
+        
         if(cnt==epoch_limit){
             fprintf(stderr, "Current epoch: %d.\n", current_epoch);
             print_MRCs(shards_table, current_epoch);

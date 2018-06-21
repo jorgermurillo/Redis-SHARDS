@@ -145,15 +145,17 @@ void bm_init() {
 	switch(bm_type) {
     	case BM_NONE: {
     		//returns if BM_NONE is chosen above
-            ;
+            return;
     	} break;
     	case BM_PRINT: {
-    		;
+    		return;
     	} break;
     	case BM_DIRECT_FILE: {
     		bm_output_fd = open(bm_output_filename, 
     						 O_WRONLY | O_CREAT | O_TRUNC,
     						 S_IRUSR, S_IWUSR);
+            fprintf(stderr, "Writing ops in file %s\n", bm_output_filename);
+            return;
     	} break;
     	case BM_TO_QUEUE: {
     		bm_oq_init(&bm_oq);
