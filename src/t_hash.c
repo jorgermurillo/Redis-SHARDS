@@ -833,7 +833,11 @@ void genericHgetallCommand(client *c, int flags) {
             count++;
         }
     }
-
+    {
+        uint64_t key_hv = dictHashKey(c->db->dict, c->argv[1]->ptr);
+        bm_op_t op = {BM_READ_OP, key_hv,server.port};
+        bm_record_op(op);
+    }
     hashTypeReleaseIterator(hi);
     serverAssert(count == length);
 }
@@ -843,6 +847,7 @@ void hkeysCommand(client *c) {
 }
 
 void hvalsCommand(client *c) {
+
     genericHgetallCommand(c,OBJ_HASH_VALUE);
 }
 
