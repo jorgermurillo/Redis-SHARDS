@@ -10,7 +10,7 @@
 
 
 
-void print_MRCs( GHashTable *shards_table, int current_epoch ){
+void print_MRCs( GHashTable *shards_table, int current_epoch, int totalmemory ){
 
             GList *shards_list = g_hash_table_get_keys(shards_table);
             shards_list = g_list_sort(shards_list, (GCompareFunc) intcmp);
@@ -19,14 +19,20 @@ void print_MRCs( GHashTable *shards_table, int current_epoch ){
             
             int frequency = 0;
             const char* mrc_path = "./ZeroMQ_Results/";
-            int lenght_name_file = 48;
+            int lenght_name_file = 49;
             char file_name[lenght_name_file];
             unsigned int number_of_files = g_list_length(shards_list);
             FILE *mrc_file;
+            //Obtain the size of the variable totalmemory in bytes
+            int size = snprintf( NULL, 0, "%d",  totalmemory);
+            char totalmemory_str[size];
+            snprintf(totalmemory_str,size,"%d ",totalmemory);
 
-            char command[  64 + (lenght_name_file*number_of_files)  ] ;
-            snprintf(command, 64 ,"python3.6  ~/optimization/Hill_Climbing/__init__.py ");    
+            char command[  64 + size + 1  + (lenght_name_file*number_of_files)  ] ;
+            snprintf(command, 64 ,"python3.6  ~/optimization/Hill_Climbing/__init__.py "); 
 
+            
+            strcat(command, totalmemory_str);
             //strcat(command, "python3.6 ");
 
             while(shards_list!=NULL){
@@ -44,9 +50,9 @@ void print_MRCs( GHashTable *shards_table, int current_epoch ){
                     int port_tmp = *(int*)(shards_list->data);
 
                     // shards_list->data is the number of the port of the redis instance
-                    snprintf(file_name,lenght_name_file,"%sMRC_epoch_%05d_port_%d.csv",mrc_path ,current_epoch , port_tmp);    
+                    snprintf(file_name,lenght_name_file,"%sMRC_epoch_%05d_port_%d.csv ",mrc_path ,current_epoch , port_tmp);    
                     strcat(command, file_name);
-                    strcat(command, " ");
+                    //strcat(command, " ");
                     printf("File path: %s\n", file_name);
                     mrc_file = fopen(file_name, "w");
 
@@ -101,8 +107,9 @@ int main(int argc, char** argv){
 	printf("PID: %d\n", getpid());
     /*
         argv[1] = max objects per epoch
-        
-
+        argv[2] = Value of R for each SHARDS data structure
+        argv[3] = SHARDS set size
+        argv[4] = Total memory among the Redis instances (in bytes)
     */
 
 
@@ -126,8 +133,9 @@ int main(int argc, char** argv){
     int current_epoch = 0; 
     
     double R = strtod(argv[2],NULL);
-    unsigned int shards_set_size = 16000;
+    unsigned int shards_set_size = strtol(argv[3],NULL,10);
     unsigned int bucket_size = 10;
+    int total_memory = strtol(argv[4],NULL,10);
 
 
     bm_op_t op = {BM_READ_OP, 0, 0}; //dummy obj to receive the tace from Redis
@@ -172,7 +180,7 @@ int main(int argc, char** argv){
         
         if(cnt==epoch_limit){
             fprintf(stderr, "Current epoch: %d.\n", current_epoch);
-            print_MRCs(shards_table, current_epoch);
+            print_MRCs(shards_table, current_epoch, total_memory);
             current_epoch++;
             cnt = 0;
 
