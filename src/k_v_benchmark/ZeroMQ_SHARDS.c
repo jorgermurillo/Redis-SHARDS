@@ -50,9 +50,9 @@ void print_MRCs( GHashTable *shards_table, int current_epoch, int totalmemory ){
                     int port_tmp = *(int*)(shards_list->data);
 
                     // shards_list->data is the number of the port of the redis instance
-                    snprintf(file_name,lenght_name_file,"%sMRC_epoch_%05d_port_%d.csv ",mrc_path ,current_epoch , port_tmp);    
+                    snprintf(file_name,lenght_name_file,"%sMRC_epoch_%05d_port_%d.csv",mrc_path ,current_epoch , port_tmp);    
                     strcat(command, file_name);
-                    //strcat(command, " ");
+                    strcat(command, " ");
                     printf("File path: %s\n", file_name);
                     mrc_file = fopen(file_name, "w");
 
