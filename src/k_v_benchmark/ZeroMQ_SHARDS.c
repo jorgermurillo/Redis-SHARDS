@@ -25,8 +25,8 @@ void print_MRCs( GHashTable *shards_table, int current_epoch, int totalmemory ){
             FILE *mrc_file;
             //Obtain the size of the variable totalmemory in bytes
             int size = snprintf( NULL, 0, "%d",  totalmemory);
-            char totalmemory_str[size];
-            snprintf(totalmemory_str,size,"%d ",totalmemory);
+            char totalmemory_str[size+2];
+            snprintf(totalmemory_str,size+2,"%d ",totalmemory);
 
             char command[  64 + size + 1  + (lenght_name_file*number_of_files)  ] ;
             snprintf(command, 64 ,"python3.6  ~/optimization/Hill_Climbing/__init__.py "); 
